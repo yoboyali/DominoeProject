@@ -29,35 +29,39 @@ public class SceneManager extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("DOMINOES!");
-        URL bgurl = getClass().getResource("/background.jpg");
+        URL b1gurl = getClass().getResource("/Host.png");
+        URL b2gurl = getClass().getResource("/Join.png");
         URL logourl = getClass().getResource("/Logo.png");
         String path = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
         Media Backgroundvid = new Media(path);
         MediaPlayer mediaplayer = new MediaPlayer(Backgroundvid);
         MediaView mediaView = new MediaView(mediaplayer);
-        //mediaplayer.setCycleCount(MediaPlayer.INDEFINITE);
         mediaplayer.setOnEndOfMedia(() -> mediaplayer.seek(Duration.ZERO));
         mediaplayer.play();
-        // Image background = new Image("/Users/alihamdy/IdeaProjects/DominoeProject/src/background.jpg");
-        if(bgurl == null){throw new RuntimeException("Cannot find image");}
-        ImageView backgroundView = new ImageView(bgurl.toExternalForm());
+        if(b1gurl == null){throw new RuntimeException("Cannot find image");}
+        ImageView HbuttonView = new ImageView(b1gurl.toExternalForm());
+        ImageView jbuttonView = new ImageView(b2gurl.toExternalForm());
         ImageView LogoView = new ImageView(logourl.toExternalForm());
-        backgroundView.setFitWidth(1280);
-        backgroundView.setFitHeight(720);
-        backgroundView.setPreserveRatio(false);
         Rectangle rect = new Rectangle();
         rect.setHeight(100);
         rect.setWidth(600);
-        rect.setX(200);
-        rect.setY(200);
         rect.setFill(Color.DARKGRAY);
         
-        Button joinBtn = new Button("Join");
-        Button hostBtn = new Button("Host");
-
+        Button joinBtn = new Button();
+        Button hostBtn = new Button();
+        hostBtn.setGraphic(HbuttonView);
+        joinBtn.setGraphic(jbuttonView);
+        hostBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-padding: 0;"
+        );
+        joinBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-padding: 0;"
+        );
         joinBtn.setOnAction(e -> System.out.println("Join clicked"));
         hostBtn.setOnAction(e -> System.out.println("Host clicked"));
-        VBox menu = new VBox(20, LogoView, rect );
+        VBox menu = new VBox(20, LogoView, hostBtn , joinBtn );
         menu.setAlignment(Pos.CENTER);
         StackPane root = new StackPane(mediaView, menu);
 
