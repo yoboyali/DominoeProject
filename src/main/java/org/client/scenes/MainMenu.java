@@ -1,4 +1,5 @@
 package org.client.scenes;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
@@ -6,34 +7,39 @@ import javafx.scene.layout.StackPane;
 import javafx.geometry.Pos;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.*;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
+import javafx.scene.text.Font;
+import javafx.scene.paint.Color;
+import org.client.SceneManager;
 
-import java.awt.*;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 public class MainMenu{
-    //Var
     URL hostSprite;
     URL joinHost;
-    URL logoHost;
     URL creditsHost;
     URL profileHost;
+    Font fontHost;
+    InputStream fontStream;
     String videoPath;
     Media backGroundVid;
     MediaPlayer mediaPlayer;
     MediaView mediaView;
     ImageView hButtonView;
     ImageView jButtonView;
-    ImageView logoView;
     ImageView creditView;
     ImageView profileView;
-  public  void initializeVar(){
+    Text Logo;
+    ProfileMenu profileMenu = new ProfileMenu();
+    public  void initializeVar(){
 
         hostSprite = getClass().getResource("/Host.png");
         joinHost = getClass().getResource("/Join.png");
-        logoHost = getClass().getResource("/Logo2.png");
         creditsHost = getClass().getResource("/Credits.png");
         profileHost = getClass().getResource("/Profile.png");
+        fontStream = getClass().getResourceAsStream("/Moldie.otf");
 
         videoPath = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
         backGroundVid = new Media(videoPath);
@@ -43,9 +49,14 @@ public class MainMenu{
         mediaPlayer.play();
         hButtonView = new ImageView(hostSprite.toExternalForm());
         jButtonView = new ImageView(joinHost.toExternalForm());
-        logoView = new ImageView(logoHost.toExternalForm());
         creditView = new ImageView(creditsHost.toExternalForm());
         profileView = new ImageView(profileHost.toExternalForm());
+        fontHost = Font.loadFont(fontStream , 140);
+        Logo = new Text( 10 , 20 ,"   DINOS\nIN SPACE!");
+        Logo.setFont(fontHost);
+        Logo.setFill(Color.WHITE);
+
+
     }
     public Scene initalizeWindow(){
         Button joinBtn = new Button();
@@ -58,16 +69,13 @@ public class MainMenu{
         profileBtn.setGraphic(profileView);
         joinBtn.setTranslateX(205);
         joinBtn.setTranslateY(120);
-        hostBtn.setTranslateX(-205);
+        hostBtn.setTranslateX(-200);
         hostBtn.setTranslateY(120);
-        creditBtn.setTranslateX(65);
-        creditBtn.setTranslateY(120);
-        profileBtn.setTranslateX(-65);
-        profileBtn.setTranslateY(120);
+        creditBtn.setTranslateX(80);
+        creditBtn.setTranslateY(127);
+        profileBtn.setTranslateX(-45);
+        profileBtn.setTranslateY(127);
 
-        logoView.setFitWidth(590);
-        logoView.setFitHeight(340);
-        logoView.setPreserveRatio(true);
         hostBtn.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"
@@ -84,14 +92,20 @@ public class MainMenu{
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"
         );
-        VBox menu = new VBox(20, logoView);
+        profileBtn.setOnAction(e -> {
+            SceneManager.setProfileScene();
+        });
+        Group gb = new Group(hostBtn , joinBtn , creditBtn , profileBtn);
+        VBox menu = new VBox(20, Logo , gb);
         menu.setAlignment(Pos.CENTER);
-        StackPane root = new StackPane(mediaView, menu, hostBtn , joinBtn , creditBtn , profileBtn);
+        StackPane root = new StackPane(mediaView, menu);
 
-       // Scene scene = new Scene(root, 1280, 720);
+        // Scene scene = new Scene(root, 1280, 720);
         return new Scene(root , 1280 , 720);
 
     }
+
+
      //
 
 }
