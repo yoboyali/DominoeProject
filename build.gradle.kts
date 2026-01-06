@@ -37,5 +37,7 @@ tasks.test {
 application {
     //mainClass.set("org.example.Main")
     mainClass.set("org.client.SceneManager")
+   // mainClass.set("org.client.Scenes.MainMenu")
+
 
 }
