@@ -1,83 +1,81 @@
 package org.client;
 
-import com.esotericsoftware.kryonet.*;
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
+import javafx.application.Platform;
 import org.shared.Network;
 
 import java.io.IOException;
-import java.util.Scanner;
+import java.util.List;
 
 public class GameClient {
 
-    private Client client;
-    private boolean myTurn = false;
+    public interface GameListener {
+        void onStartGame(int playerNumber, List<Network.Piece> hand);
+        void onYourTurn();
+        void onOpponentPlayed(int pieceId);
+    }
 
-    public GameClient(String host, String playerName) throws IOException {
+    private final Client client;
+    private GameListener listener;
+
+    public GameClient(String host) {
         client = new Client();
-        client.start();
-
         Network.register(client.getKryo());
 
-       client.connect(5000, host, Network.TCP_PORT, Network.UDP_PORT);
-       // client.connect(5000, "localhost", 54555, 54777);
+        client.start();
 
-        // Send connect request
-        Network.ConnectRequest req = new Network.ConnectRequest();
-        req.name = playerName;
-        client.sendTCP(req);
-
-        System.out.println("Connected. Waiting for opponent...");
+        try {
+            client.connect(5000, host, Network.TCP_PORT, Network.UDP_PORT);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to connect to server", e);
+        }
 
         client.addListener(new Listener() {
-            @Override
-            public void received(Connection c, Object object) {
 
-                if (object instanceof Network.StartGame) {
-                    Network.StartGame sg = (Network.StartGame) object;
-                    System.out.println("You are Player " + sg.playerNumber);
+            @Override
+            public void received(Connection connection, Object object) {
+                if (object instanceof Network.StartGame sg) {
+                    Platform.runLater(() ->
+                            listener.onStartGame(sg.playerNumber, sg.hand)
+                    );
                 }
 
                 if (object instanceof Network.YourTurn) {
-                    myTurn = true;
-                    System.out.println("\n--- Your Turn ---");
+                    Platform.runLater(() ->
+                            listener.onYourTurn()
+                    );
                 }
 
-                if (object instanceof Network.OpponentPlayed) {
-                    Network.OpponentPlayed op = (Network.OpponentPlayed) object;
-                    System.out.println("Opponent played: " + op.piece);
+                if (object instanceof Network.OpponentPlayed op) {
+                    Platform.runLater(() ->
+                            listener.onOpponentPlayed(op.pieceId)
+                    );
                 }
 
-                if (object instanceof Network.GameOver) {
-                    System.out.println("Game ended.");
-                    client.stop();
-                }
+            }
+
+            @Override
+            public void disconnected(Connection connection) {
+                System.out.println("Disconnected from server.");
             }
         });
-
-        // Input Loop
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            if (!myTurn) continue;
-
-            System.out.print("Place a piece: ");
-            String piece = scanner.nextLine();
-
-            Network.PlayPiece msg = new Network.PlayPiece();
-            msg.piece = piece;
-            client.sendTCP(msg);
-
-            myTurn = false;
-        }
     }
 
-    public static void main(String[] args) throws IOException {
-        Scanner scan = new Scanner(System.in);
-        System.out.print("Enter server IP: ");
-        String ip = scan.nextLine();
+    public void setListener(GameListener listener) {
+        this.listener = listener;
+    }
 
-        System.out.print("Enter your name: ");
-        String name = scan.nextLine();
 
-        new GameClient(ip, name);
+
+    public void playCard(int pieceId) {
+        Network.PlayPiece play = new Network.PlayPiece();
+        play.pieceId = pieceId;
+        client.sendTCP(play);
+    }
+
+    public void disconnect() {
+        client.stop();
     }
 }

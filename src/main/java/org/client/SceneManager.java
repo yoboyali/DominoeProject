@@ -1,5 +1,7 @@
 package org.client;
 import javafx.scene.Scene;
+import org.client.scenes.GameScene;
+import org.client.scenes.HostScene;
 import org.client.scenes.MainMenu;
 import org.client.scenes.ProfileMenu;
 import javafx.application.Application;
@@ -13,6 +15,8 @@ public class SceneManager extends Application {
 
     private static MainMenu mainMenu;
     private static ProfileMenu profileMenu;
+    private static HostScene hostMenu;
+    private static GameScene gameMenu;
 
     @Override
     public void start(Stage stage) {
@@ -22,8 +26,14 @@ public class SceneManager extends Application {
 
         profileMenu = new ProfileMenu();
         profileMenu.initializeVar();
+
+        gameMenu = new GameScene();
+
         setMainScene();
         primaryStage.show();
+
+        hostMenu = new HostScene(primaryStage);
+
     }
 
     public static void setMainScene() {
@@ -38,6 +48,16 @@ public class SceneManager extends Application {
         primaryStage.centerOnScreen();
     }
 
+    public static void setHostScene(){
+        primaryStage.setScene(hostMenu.createScene());
+        primaryStage.sizeToScene();
+        primaryStage.centerOnScreen();
+    }
+    public static void setGameScene(){
+        primaryStage.setScene(gameMenu.createScene());
+        primaryStage.sizeToScene();
+        primaryStage.centerOnScreen();
+    }
     public static void main(String[] args) {
         launch(args);
     }

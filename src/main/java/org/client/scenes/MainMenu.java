@@ -80,10 +80,14 @@ public class MainMenu{
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"
         );
+        hostBtn.setOnAction(e -> {
+            SceneManager.setHostScene();
+        });
         joinBtn.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"
         );
+
         creditBtn.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"

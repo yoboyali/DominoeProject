@@ -88,7 +88,7 @@ public class ProfileMenu {
         Profile.setY(-180);
 
         ImageView image = new ImageView();
-        ImageViewSprite anim = new ImageViewSprite(image, new Image("/Dino/Dinos.png"), 3, 1, 3, 120, 120, 6);
+        ImageViewSprite anim = new ImageViewSprite(image, new Image("/Dino/Anas2.png"), 3, 1, 3, 105, 120, 6);
         anim.start();
         Group buttons = new Group( Logo, backBtn);
         Group Frame = new Group(frameView , image , changeText , changebtn , Profile);
