@@ -87,6 +87,7 @@ public class MainMenu{
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"
         );
+        joinBtn.setOnAction( e -> SceneManager.setJoinScene());
 
         creditBtn.setStyle(
                 "-fx-background-color: transparent;" +
