@@ -1,4 +1,3 @@
-
 package org.shared;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -9,9 +8,7 @@ public class Network {
     public static final int TCP_PORT = 54555;
     public static final int UDP_PORT = 54777;
 
-    /* =====================
-       Messages
-       ===================== */
+
 
     public static class ConnectRequest {
         public String name;
@@ -42,9 +39,19 @@ public class Network {
 
     public static class GameOver {}
 
-    /* =====================
-       Data
-       ===================== */
+    public static class MoveValidated {
+        public int pieceId;
+        public int leftValue;
+        public int rightValue;
+        public boolean placedOnLeft;
+        public boolean flipped;
+    }
+
+    public static class MoveInvalid {
+        public String reason;
+    }
+
+
 
     public static class Piece {
         public int id;
@@ -52,7 +59,6 @@ public class Network {
         public int leftValue;
         public int rightValue;
 
-        // REQUIRED by Kryo
         public Piece() {}
 
         public Piece(int id, String imagePath, int leftValue, int rightValue) {
@@ -63,20 +69,20 @@ public class Network {
         }
     }
 
-    /* =====================
-       Registration
-       ===================== */
+
     public static class InitialHand {
         public ArrayList<Piece> pieces;
     }
+    public static class DrawPiece {
+        public int playerNumber;
+    }
 
-    /* =====================
-       Registration
-       ===================== */
+    public static class PieceDrawn {
+        public Network.Piece piece;
+        public boolean successful;
+    }
+
     public static void register(Kryo kryo) {
-        System.out.println("Registering network classes with Kryo...");
-
-        // Register message classes
         kryo.register(ConnectRequest.class);
         kryo.register(StartGame.class);
         kryo.register(YourTurn.class);
@@ -84,17 +90,16 @@ public class Network {
         kryo.register(OpponentPlayed.class);
         kryo.register(GameOver.class);
         kryo.register(InitialHand.class);
-
-        // Register data classes
+        kryo.register(DrawPiece.class);
+        kryo.register(PieceDrawn.class);
+        kryo.register(MoveValidated.class);
+        kryo.register(MoveInvalid.class);
         kryo.register(Piece.class);
-
-        // Register collections and primitives
         kryo.register(ArrayList.class);
         kryo.register(java.util.List.class);
         kryo.register(String.class);
         kryo.register(int.class);
         kryo.register(boolean.class);
 
-        System.out.println("✓ All network classes registered");
     }
 }

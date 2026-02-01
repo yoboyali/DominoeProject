@@ -1,9 +1,10 @@
-
 package org.client.scenes;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -32,21 +33,18 @@ public class GameScene {
     private final HBox handBox = new HBox(12);
     private final List<Network.Piece> hand = new ArrayList<>();
 
-    // Game board to display played pieces
     private final HBox boardBox = new HBox(5);
     private final List<Network.Piece> playedPieces = new ArrayList<>();
+
+    private final StackPane drawButton = new StackPane();
 
     private boolean myTurn = false;
     private GameClient client;
 
-    // Track the last piece we tried to play
     private Network.Piece lastAttemptedPiece = null;
 
-
     public GameScene() {
-        System.out.println("GameScene: Constructor called");
         loadAssets();
-        System.out.println("GameScene: Constructor completed");
     }
 
     public void setClient(GameClient client) {
@@ -56,7 +54,7 @@ public class GameScene {
 
     private void loadAssets() {
         try {
-            // Load frame image
+
             frameView = new ImageView(
                     getClass().getResource("/Holder.png").toExternalForm()
             );
@@ -64,13 +62,10 @@ public class GameScene {
             boardView = new ImageView(
                     getClass().getResource("/board.png").toExternalForm()
             );
-            // Get video path
             videoPath = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
 
-            // FIX: Create Media object first
-            backGroundVid = new Media(videoPath);  // This was missing!
+            backGroundVid = new Media(videoPath);
 
-            // Now create the player with the media
             mediaPlayer = new MediaPlayer(backGroundVid);
             mediaView = new MediaView(mediaPlayer);
 
@@ -80,40 +75,122 @@ public class GameScene {
             System.out.println("✓ Loaded background assets");
         } catch (Exception e) {
             System.err.println("✗ Failed to load background assets: " + e.getMessage());
-            e.printStackTrace();  // Add this to see full stack trace
+            e.printStackTrace();
         }
     }
 
     public Scene createScene() {
         StackPane root = new StackPane();
 
+        setupDrawButton();
 
         boardBox.setAlignment(Pos.CENTER);
         StackPane.setAlignment(boardBox, Pos.CENTER);
         boardView.setOpacity(0.3);
-        StackPane.setAlignment(boardView , Pos.CENTER);
+        StackPane.setAlignment(boardView, Pos.CENTER);
         handBox.setAlignment(Pos.BOTTOM_CENTER);
         StackPane.setAlignment(handBox, Pos.BOTTOM_CENTER);
         StackPane.setMargin(handBox, new Insets(0, 0, 20, 0));
-
         StackPane.setAlignment(frameView, Pos.BOTTOM_CENTER);
+
+        StackPane.setAlignment(drawButton, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(drawButton, new Insets(0, 50, 50, 0));
 
         root.getChildren().addAll(
                 mediaView,
                 boardView,
                 frameView,
                 boardBox,
-                handBox
+                handBox,
+                drawButton
         );
+
 
         boardBox.setStyle("-fx-background-color: rgba(0, 0, 0, 0.1); -fx-background-radius: 10;");
         boardBox.setPadding(new Insets(10));
-        boardBox.setSpacing(10);
+        boardBox.setSpacing(40);
         handBox.setSpacing(15);
 
         renderHand();
 
         return new Scene(root, 1400, 800);
+    }
+
+    private void setupDrawButton() {
+        try {
+            Image drawImage = new Image(getClass().getResource("/Pieces/?.png").toExternalForm());
+            ImageView drawImageView = new ImageView(drawImage);
+            drawImageView.setPreserveRatio(true);
+            drawImageView.setFitWidth(40);
+            drawImageView.setFitHeight(80);
+
+            drawButton.getChildren().clear();
+            drawButton.getChildren().add(drawImageView);
+
+
+        } catch (Exception e) {
+            System.err.println("✗ Failed to load draw button texture: " + e.getMessage());
+        }
+
+
+        drawButton.setPrefSize(40, 80);
+        drawButton.setMinSize(40, 80);
+        drawButton.setMaxSize(40, 80);
+
+        drawButton.setOnMouseEntered(e -> {
+            if (myTurn) {
+                drawButton.setScaleX(1.1);
+                drawButton.setScaleY(1.1);
+                drawButton.setStyle("-fx-background-color: rgba(76, 175, 80, 0.8); " +
+                        "-fx-border-color: #2E7D32; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-background-radius: 5; " +
+                        "-fx-border-radius: 5;");
+            }
+        });
+
+        drawButton.setOnMouseExited(e -> {
+            drawButton.setScaleX(1.0);
+            drawButton.setScaleY(1.0);
+            drawButton.setStyle("-fx-background-color: transparent; " +
+                    "-fx-border-color: #2E7D32; " +
+                    "-fx-border-width: 2; " +
+                    "-fx-background-radius: 5; " +
+                    "-fx-border-radius: 5;");
+        });
+
+        drawButton.setOnMouseClicked(e -> handleDrawRequest());
+
+        drawButton.setDisable(!myTurn);
+        drawButton.setOpacity(myTurn ? 1.0 : 0.5);
+
+        drawButton.setStyle("-fx-background-color: transparent; " +
+                "-fx-border-color: #2E7D32; " +
+                "-fx-border-width: 2; " +
+                "-fx-background-radius: 5; " +
+                "-fx-border-radius: 5;");
+    }
+
+
+    private void handleDrawRequest() {
+        if (!myTurn) {
+            System.out.println("Cannot draw now - not your turn");
+            return;
+        }
+
+        System.out.println("Requesting to draw a piece...");
+
+        if (client == null) {
+            System.err.println("ERROR: Cannot draw - client is null!");
+            showAlert("Connection Error", "Game client is not connected. Please reconnect.");
+            return;
+        }
+
+        drawButton.setDisable(true);
+        drawButton.setOpacity(0.5);
+
+        client.drawPiece();
+        System.out.println("Draw request sent to server");
     }
 
     public void setHand(List<Network.Piece> pieces) {
@@ -134,23 +211,57 @@ public class GameScene {
         renderHand();
     }
 
+    public void onPieceDrawn(Network.Piece piece, boolean successful) {
+        System.out.println("Piece drawn response - successful: " + successful);
+
+        if (myTurn) {
+            drawButton.setDisable(false);
+            drawButton.setOpacity(1.0);
+        }
+
+        if (successful && piece != null) {
+            System.out.println("Successfully drew piece: [" + piece.leftValue + "-" + piece.rightValue + "]");
+
+    
+            hand.add(piece);
+            renderHand();
+
+
+            showAlert("Piece Drawn", "You drew [" + piece.leftValue + "-" + piece.rightValue + "]");
+        } else {
+            System.out.println("Failed to draw piece - draw pile might be empty");
+            showAlert("Cannot Draw", "Draw pile is empty!");
+        }
+    }
+
     public void setMyTurn(boolean turn) {
         System.out.println("GameScene: My turn = " + turn);
         myTurn = turn;
 
         if (myTurn) {
-            // If we get our turn back, but last attempted piece is still in hand,
-            // it means the server rejected our move
-            if (lastAttemptedPiece != null && hand.contains(lastAttemptedPiece)) {
+            drawButton.setDisable(false);
+            drawButton.setOpacity(1.0);
+
+
+            if (lastAttemptedPiece != null) {
                 System.out.println("Server rejected our move with piece " + lastAttemptedPiece.id);
                 showAlert("Invalid Move",
                         "You cannot play [" + lastAttemptedPiece.leftValue + "-" + lastAttemptedPiece.rightValue +
                                 "] there. Try a different piece or placement.");
+
+                removeLastPieceFromBoard();
                 lastAttemptedPiece = null;
             }
             enableHand();
         } else {
             disableHand();
+        }
+    }
+
+    private void removeLastPieceFromBoard() {
+        if (!boardBox.getChildren().isEmpty()) {
+            boardBox.getChildren().remove(boardBox.getChildren().size() - 1);
+            System.out.println("Removed rejected piece from board");
         }
     }
 
@@ -178,8 +289,6 @@ public class GameScene {
                 }
 
                 ImageView view = new ImageView(image);
-                view.setFitWidth(100);
-                view.setFitHeight(150);
                 view.setPreserveRatio(true);
 
                 view.setOnMouseEntered(e -> {
@@ -288,31 +397,38 @@ public class GameScene {
                 " on " + (placeOnLeft ? "left" : "right") +
                 " flipped: " + flipped);
 
-        // Remember which piece we tried to play
         lastAttemptedPiece = piece;
 
         if (client == null) {
             System.err.println("ERROR: Cannot play piece - client is null!");
             showAlert("Connection Error", "Game client is not connected. Please reconnect.");
             lastAttemptedPiece = null;
+
+            if (myTurn) {
+                drawButton.setDisable(false);
+                drawButton.setOpacity(1.0);
+            }
             return;
         }
 
-        // Send to server - DO NOT update UI yet
         client.playCard(piece.id, piece.leftValue, piece.rightValue, placeOnLeft, flipped);
 
-        // Disable hand while waiting for server response
         myTurn = false;
         disableHand();
 
         System.out.println("Move sent to server. Waiting for validation...");
+    }
+    public void onValidMovePlayed(Network.Piece piece, boolean placedOnLeft, boolean flipped) {
+        System.out.println("Server validated our move: [" + piece.leftValue + "-" + piece.rightValue + "]");
+
+        lastAttemptedPiece = null;
+        addPlayedPiece(piece, true, placedOnLeft, flipped);
     }
 
     public void onOpponentPlayed(int pieceId, int leftValue, int rightValue, boolean placedOnLeft, boolean flipped) {
         System.out.println("Opponent played [" + leftValue + "-" + rightValue +
                 "] on " + (placedOnLeft ? "left" : "right") + " flipped: " + flipped);
 
-        // If opponent played, our previous move (if any) was invalid
         lastAttemptedPiece = null;
 
         try {
@@ -320,7 +436,6 @@ public class GameScene {
             Network.Piece opponentPiece = new Network.Piece(pieceId, imagePath, leftValue, rightValue);
             addPlayedPiece(opponentPiece, false, placedOnLeft, flipped);
 
-            // It's now our turn
             setMyTurn(true);
 
         } catch (Exception e) {
@@ -347,17 +462,13 @@ public class GameScene {
             }
 
             ImageView view = new ImageView(image);
+            view.setPreserveRatio(true);
 
             if (flipped) {
-                view.setFitWidth(180);
-                view.setFitHeight(120);
                 view.setRotate(90);
             } else {
-                view.setFitWidth(120);
-                view.setFitHeight(180);
-                view.setRotate(180);
+                view.setRotate(-90);
             }
-            view.setPreserveRatio(true);
 
             if (!playedByMe) {
                 view.setOpacity(0.9);
@@ -372,55 +483,31 @@ public class GameScene {
                 boardBox.getChildren().add(view);
             }
 
-            // If it's our piece, remove it from hand
-            if (playedByMe && lastAttemptedPiece != null) {
-                hand.remove(lastAttemptedPiece);
+            if (playedByMe) {
+                boolean removed = false;
+                for (int i = 0; i < hand.size(); i++) {
+                    if (hand.get(i).id == piece.id) {
+                        hand.remove(i);
+                        removed = true;
+                        break;
+                    }
+                }
                 lastAttemptedPiece = null;
-                renderHand(); // Update hand display
+                renderHand();
             }
 
             playedPieces.add(piece);
-            System.out.println("✓ Piece added to board");
 
         } catch (Exception e) {
             System.err.println("Failed to add piece to board: " + e.getMessage());
-            createBoardPlaceholder(piece, playedByMe, placedOnLeft, flipped);
+            e.printStackTrace();
         }
     }
 
-    private void createBoardPlaceholder(Network.Piece piece, boolean playedByMe, boolean placedOnLeft, boolean flipped) {
-        StackPane placeholder = new StackPane();
-
-        if (flipped) {
-            placeholder.setPrefSize(180, 120);
-            placeholder.setRotate(90);
-        } else {
-            placeholder.setPrefSize(120, 180);
-        }
-
-        String bgColor = playedByMe ? "lightgreen" : "lightcoral";
-        placeholder.setStyle("-fx-background-color: " + bgColor + "; -fx-border-color: black; -fx-border-width: 2;");
-
-        javafx.scene.control.Label label = new javafx.scene.control.Label(
-                piece.leftValue + "\n-\n" + piece.rightValue
-        );
-        label.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-alignment: center;");
-        placeholder.getChildren().add(label);
-
-        if (placedOnLeft) {
-            boardBox.getChildren().add(0, placeholder);
-        } else {
-            boardBox.getChildren().add(placeholder);
-        }
-
-        // If it's our piece, remove it from hand
-        if (playedByMe && lastAttemptedPiece != null) {
-            hand.remove(lastAttemptedPiece);
-            lastAttemptedPiece = null;
-            renderHand();
-        }
-
-        playedPieces.add(piece);
+    public void onMoveInvalid(String reason) {
+        showAlert("Invalid Move", reason);
+        lastAttemptedPiece = null;
+        setMyTurn(true);
     }
 
     private String getImagePathForValues(int left, int right) {
@@ -430,11 +517,15 @@ public class GameScene {
     private void disableHand() {
         handBox.setDisable(true);
         handBox.setOpacity(0.6);
+        drawButton.setDisable(true);
+        drawButton.setOpacity(0.6);
     }
 
     private void enableHand() {
         handBox.setDisable(false);
         handBox.setOpacity(1.0);
+        drawButton.setDisable(false);
+        drawButton.setOpacity(1.0);
     }
 
     private void showAlert(String title, String message) {

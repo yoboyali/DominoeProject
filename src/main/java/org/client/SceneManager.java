@@ -53,30 +53,12 @@ public class SceneManager extends Application {
         primaryStage.centerOnScreen();
     }
     public static void setGameScene(Scene gameScene) {
-        System.out.println("SceneManager: Setting game scene");
-        if (primaryStage == null) {
-            System.err.println("SceneManager: primaryStage is null!");
-            return;
-        }
-
-        if (gameScene == null) {
-            System.err.println("SceneManager: gameScene is null!");
-            return;
-        }
-
-        try {
-            primaryStage.setScene(gameScene);
-            primaryStage.sizeToScene();
-            primaryStage.centerOnScreen();
-            primaryStage.show(); // IMPORTANT: Make sure stage is shown
-
-            System.out.println("SceneManager: Game scene set successfully!");
-        } catch (Exception e) {
-            System.err.println("SceneManager: Error setting game scene: " + e.getMessage());
-            e.printStackTrace();
-        }
+        primaryStage.setScene(gameScene);
+        primaryStage.sizeToScene();
+        primaryStage.centerOnScreen();
+        primaryStage.show();
     }
-   public static void setJoinScene() {  // NEW METHOD
+   public static void setJoinScene() {
        primaryStage.setScene(joinMenu.createScene());
        primaryStage.sizeToScene();
        primaryStage.centerOnScreen();

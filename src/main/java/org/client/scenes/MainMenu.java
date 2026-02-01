@@ -52,7 +52,7 @@ public class MainMenu{
         creditView = new ImageView(creditsHost.toExternalForm());
         profileView = new ImageView(profileHost.toExternalForm());
         fontHost = Font.loadFont(fontStream , 140);
-        Logo = new Text( 10 , 20 ,"   DINOS\nIN SPACE!");
+        Logo = new Text( 10 , 20 ,"Dominoes");
         Logo.setFont(fontHost);
         Logo.setFill(Color.WHITE);
 
@@ -98,7 +98,8 @@ public class MainMenu{
                         "-fx-padding: 0;"
         );
         profileBtn.setOnAction(e -> {
-            SceneManager.setProfileScene();
+            //SceneManager.setProfileScene();
+
         });
         Group gb = new Group(hostBtn , joinBtn , creditBtn , profileBtn);
         VBox menu = new VBox(20, Logo , gb);

@@ -21,27 +21,23 @@ public class JoinScene {
     }
 
     public Scene createScene() {
-        // Title
+
         Label titleLabel = new Label("Join Game");
         titleLabel.setFont(Font.font("Arial", 24));
 
-        // IP Address input
         Label ipLabel = new Label("Enter Server IP:");
         ipField = new TextField();
         ipField.setPromptText("e.g., localhost or 192.168.1.100");
         ipField.setPrefWidth(300);
 
-        // Join button
         Button joinButton = new Button("Join Game");
         joinButton.setPrefWidth(150);
         joinButton.setOnAction(e -> joinGame());
 
-        // Back button
         Button backButton = new Button("Back to Menu");
         backButton.setPrefWidth(150);
         backButton.setOnAction(e -> SceneManager.setMainScene());
 
-        // Layout
         VBox layout = new VBox(20);
         layout.setPadding(new Insets(50));
         layout.setAlignment(Pos.CENTER);
@@ -59,10 +55,8 @@ public class JoinScene {
     private void joinGame() {
         String ip = ipField.getText().trim();
         if (ip.isEmpty()) {
-            ip = "localhost"; // Default to localhost
+            ip = "localhost";
         }
-
-        // Use GameController to join
         GameController.getInstance().joinGame(stage, ip);
     }
 }

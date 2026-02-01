@@ -1,4 +1,3 @@
-
 package org.client;
 
 import javafx.application.Platform;
@@ -47,19 +46,17 @@ public class GameController {
         new Thread(() -> {
             try {
                 System.out.println("GameController: Connecting to " + ip);
-
-                // Create GameScene with empty constructor
                 gameScene = new GameScene();
                 System.out.println("GameController: GameScene created");
 
-                // Create GameClient with listener
-                client = new GameClient(ip, new GameClient.GameListener() {
+                // Create GameClient with ExtendedGameListener
+                client = new GameClient(ip, new GameClient.ExtendedGameListener() {
                     @Override
                     public void onStartGame(int playerNumber, List<Network.Piece> hand) {
                         Platform.runLater(() -> {
                             System.out.println("GameController: Setting hand and scene");
                             gameScene.setHand(hand);
-                            gameScene.setClient(client); // SET CLIENT HERE!
+                            gameScene.setClient(client);
                             SceneManager.setGameScene(gameScene.createScene());
                             stage.show();
                         });
@@ -79,14 +76,39 @@ public class GameController {
                             gameScene.setMyTurn(true);
                         });
                     }
+
+                    @Override
+                    public void onMoveValidated(int pieceId, int leftValue, int rightValue, boolean placedOnLeft, boolean flipped) {
+                        Platform.runLater(() -> {
+                            String imagePath = getImagePathForValues(leftValue, rightValue);
+                            Network.Piece piece = new Network.Piece(pieceId, imagePath, leftValue, rightValue);
+                            gameScene.onValidMovePlayed(piece, placedOnLeft, flipped);
+                        });
+                    }
+
+                    @Override
+                    public void onMoveInvalid(String reason) {
+                        Platform.runLater(() -> {
+                            gameScene.onMoveInvalid(reason);
+                        });
+                    }
+
+                    @Override
+                    public void onPieceDrawn(Network.Piece piece, boolean successful) {
+                        Platform.runLater(() -> {
+                            gameScene.onPieceDrawn(piece, successful);
+                        });
+                    }
+
+                    private String getImagePathForValues(int left, int right) {
+                        return String.format("/Pieces/%d%d.png", left, right);
+                    }
                 });
 
                 System.out.println("GameController: Connection successful!");
-
             } catch (Exception e) {
                 System.err.println("GameController: Connection failed: " + e.getMessage());
                 Platform.runLater(() -> {
-                    // Show error and go back to join scene
                     SceneManager.setJoinScene();
                 });
             }
