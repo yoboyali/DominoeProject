@@ -39,6 +39,9 @@ public class Network {
 
     public static class GameOver {}
 
+    public static class GameFinished{
+        boolean winner;
+    }
     public static class MoveValidated {
         public int pieceId;
         public int leftValue;
@@ -92,6 +95,7 @@ public class Network {
         kryo.register(InitialHand.class);
         kryo.register(DrawPiece.class);
         kryo.register(PieceDrawn.class);
+        kryo.register(GameFinished.class);
         kryo.register(MoveValidated.class);
         kryo.register(MoveInvalid.class);
         kryo.register(Piece.class);

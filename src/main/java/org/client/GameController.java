@@ -47,14 +47,10 @@ public class GameController {
             try {
                 System.out.println("GameController: Connecting to " + ip);
                 gameScene = new GameScene();
-                System.out.println("GameController: GameScene created");
-
-                // Create GameClient with ExtendedGameListener
                 client = new GameClient(ip, new GameClient.ExtendedGameListener() {
                     @Override
                     public void onStartGame(int playerNumber, List<Network.Piece> hand) {
                         Platform.runLater(() -> {
-                            System.out.println("GameController: Setting hand and scene");
                             gameScene.setHand(hand);
                             gameScene.setClient(client);
                             SceneManager.setGameScene(gameScene.createScene());
@@ -105,7 +101,6 @@ public class GameController {
                     }
                 });
 
-                System.out.println("GameController: Connection successful!");
             } catch (Exception e) {
                 System.err.println("GameController: Connection failed: " + e.getMessage());
                 Platform.runLater(() -> {

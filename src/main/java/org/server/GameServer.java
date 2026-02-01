@@ -74,7 +74,6 @@ public class GameServer {
                 System.out.println("✓ Player " + c.getID() + " connected (" + (connectedPlayers + 1) + "/2)");
 
                 if (connectedPlayers >= 2) {
-                    System.out.println("✗ Server full, rejecting connection");
                     c.close();
                     return;
                 }
@@ -94,8 +93,6 @@ public class GameServer {
                     return;
                 }
 
-                System.out.println("Server: Received from connection " + c.getID() + ": " + obj.getClass().getSimpleName());
-
                 if (obj instanceof Network.PlayPiece move) {
                     handleMove(c, move);
                 }
@@ -106,7 +103,6 @@ public class GameServer {
 
             @Override
             public void disconnected(Connection c) {
-                System.out.println("Player " + getPlayerId(c) + " disconnected");
                 if (connectedPlayers > 0) {
                     broadcast(new Network.GameOver());
                     resetGame();
@@ -123,9 +119,6 @@ public class GameServer {
 
         server.start();
 
-        System.out.println("✓ Server started on port " + Network.TCP_PORT);
-        System.out.println("✓ Waiting for players to connect...");
-        System.out.println("✓ KeepAlive system enabled to prevent timeouts");
     }
 
     private int getPlayerId(Connection c) {
@@ -136,30 +129,24 @@ public class GameServer {
     }
     private void handleDrawPiece(Connection sender) {
         int playerId = getPlayerId(sender);
-        System.out.println("Player " + playerId + " wants to draw a piece");
 
         Network.PieceDrawn response = new Network.PieceDrawn();
 
         if (drawPile.isEmpty()) {
             response.successful = false;
-            System.out.println("Draw pile is empty!");
         } else {
             Network.Piece drawnPiece = drawPile.remove(0);
             response.piece = drawnPiece;
             response.successful = true;
-            System.out.println("Player " + playerId + " drew piece " + drawnPiece.id +
-                    " [" + drawnPiece.leftValue + "-" + drawnPiece.rightValue + "]");
-            System.out.println("Draw pile now has " + drawPile.size() + " pieces remaining");
+
         }
 
         sender.sendTCP(response);
     }
 
     private void startGame() {
-        System.out.println("✓ Both players connected. Starting game.");
 
         Collections.shuffle(drawPile);
-        System.out.println("Draw pile shuffled. " + drawPile.size() + " pieces total.");
 
         for (int i = 0; i < 2; i++) {
             Network.StartGame sg = new Network.StartGame();
@@ -174,25 +161,18 @@ public class GameServer {
                 if (!drawPile.isEmpty()) {
                     Network.Piece piece = drawPile.remove(0);
                     hand.pieces.add(piece);
-                    System.out.println("Gave piece " + piece.id + " to player " + (i + 1));
                 }
             }
 
             players[i].sendTCP(hand);
-            System.out.println("Player " + (i + 1) + " received " + hand.pieces.size() + " pieces");
         }
 
-        System.out.println("Draw pile now has " + drawPile.size() + " pieces remaining");
 
         players[0].sendTCP(new Network.YourTurn());
-        System.out.println("Game started. Player 1's turn.");
     }
     private void handleMove(Connection sender, Network.PlayPiece move) {
         int senderId = getPlayerId(sender);
         if (players[currentTurn] != sender) {
-            System.out.println("Invalid: Not player's turn! Expected player " + (currentTurn + 1) +
-                    ", but player " + senderId + " tried to move");
-
             Network.MoveInvalid invalid = new Network.MoveInvalid();
             invalid.reason = "Not your turn!";
             sender.sendTCP(invalid);
@@ -201,15 +181,12 @@ public class GameServer {
 
         String validationError = validateMove(move);
         if (validationError != null) {
-            System.out.println("Invalid move by player " + senderId + ": " + validationError);
-
             Network.MoveInvalid invalid = new Network.MoveInvalid();
             invalid.reason = validationError;
             sender.sendTCP(invalid);
             return;
         }
 
-        System.out.println("✓ Player " + senderId + " made valid move");
 
         Network.MoveValidated validated = new Network.MoveValidated();
         validated.pieceId = move.pieceId;
@@ -230,46 +207,28 @@ public class GameServer {
         msg.placedOnLeft = move.placedOnLeft;
         msg.flipped = move.flipped;
 
-        System.out.println("Sending OpponentPlayed to player " + (other + 1));
         players[other].sendTCP(msg);
 
         currentTurn = other;
-        System.out.println("Now it's Player " + (currentTurn + 1) + "'s turn");
 
         players[currentTurn].sendTCP(new Network.YourTurn());
-        System.out.println("Sent YourTurn to Player " + (currentTurn + 1));
 
-        printBoardState();
     }
-    private void printBoardState() {
-        System.out.println("=== BOARD STATE ===");
-        System.out.println("Current turn: Player " + (currentTurn + 1));
-        System.out.println("Left end: " + leftEndValue + " | Right end: " + rightEndValue);
-        System.out.print("Board pieces: ");
-        for (Network.Piece p : board) {
-            System.out.print("[" + p.leftValue + "-" + p.rightValue + "] ");
-        }
-        System.out.println("\n==================");
-    }
+
 
     private String validateMove(Network.PlayPiece move) {
-        System.out.println("Validating move: [" + move.leftValue + "-" + move.rightValue +
-                "] placedOnLeft=" + move.placedOnLeft + " flipped=" + move.flipped);
 
         int pieceLeftValue, pieceRightValue;
 
         if (move.flipped) {
             pieceLeftValue = move.rightValue;
             pieceRightValue = move.leftValue;
-            System.out.println("  Piece flipped: Values swapped to [" + pieceLeftValue + "-" + pieceRightValue + "]");
         } else {
             pieceLeftValue = move.leftValue;
             pieceRightValue = move.rightValue;
-            System.out.println("  Piece not flipped: Using [" + pieceLeftValue + "-" + pieceRightValue + "]");
         }
 
         if (!firstMoveMade) {
-            System.out.println("  First move: Any piece is allowed");
             return null;
         }
 
@@ -279,11 +238,9 @@ public class GameServer {
         if (move.placedOnLeft) {
 
             pieceConnectingValue = pieceRightValue;
-            System.out.println("  Left placement: Right value " + pieceRightValue + " connects to board left end " + leftEndValue);
         } else {
 
             pieceConnectingValue = pieceLeftValue;
-            System.out.println("  Right placement: Left value " + pieceLeftValue + " connects to board right end " + rightEndValue);
         }
 
 
@@ -297,25 +254,19 @@ public class GameServer {
             }
         }
 
-        System.out.println("  ✓ Valid: " + pieceConnectingValue + " matches board end");
         return null;
     }
 
     private void applyMoveToBoard(Network.PlayPiece move) {
-        System.out.println("Applying move to board: [" + move.leftValue + "-" + move.rightValue +
-                "] placedOnLeft=" + move.placedOnLeft + " flipped=" + move.flipped);
-
 
         int pieceLeftValue, pieceRightValue;
 
         if (move.flipped) {
             pieceLeftValue = move.rightValue;
             pieceRightValue = move.leftValue;
-            System.out.println("  Piece flipped: Values swapped to [" + pieceLeftValue + "-" + pieceRightValue + "]");
         } else {
             pieceLeftValue = move.leftValue;
             pieceRightValue = move.rightValue;
-            System.out.println("  Piece not flipped: Using [" + pieceLeftValue + "-" + pieceRightValue + "]");
         }
 
         Network.Piece boardPiece = new Network.Piece(
@@ -327,20 +278,16 @@ public class GameServer {
             board.add(boardPiece);
             leftEndValue = pieceLeftValue;
             rightEndValue = pieceRightValue;
-            System.out.println("  First piece: Left end = " + leftEndValue + ", Right end = " + rightEndValue);
 
         } else if (move.placedOnLeft) {
             board.add(0, boardPiece);
             leftEndValue = pieceLeftValue;
-            System.out.println("  Added to left: Connected " + pieceRightValue + " to board, new left end = " + leftEndValue);
 
         } else {
             board.add(boardPiece);
             rightEndValue = pieceRightValue;
-            System.out.println("  Added to right: Connected " + pieceLeftValue + " to board, new right end = " + rightEndValue);
         }
 
-        System.out.println("  Board ends: Left=" + leftEndValue + ", Right=" + rightEndValue);
     }
 
     private String getImagePathForValues(int left, int right) {
@@ -399,7 +346,6 @@ public class GameServer {
         leftEndValue = -1;
         rightEndValue = -1;
         firstMoveMade = false;
-        System.out.println("✓ Game reset. Waiting for new players...");
     }
 
     public static void startServer() {

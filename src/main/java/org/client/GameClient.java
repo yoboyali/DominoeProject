@@ -33,7 +33,6 @@ public class GameClient {
         client = new Client();
         Network.register(client.getKryo());
 
-        System.out.println("Client: Network classes registered");
 
         client.getKryo().setRegistrationRequired(false);
 
@@ -44,7 +43,6 @@ public class GameClient {
         client.addListener(new Listener() {
             @Override
             public void connected(Connection connection) {
-                System.out.println("Client: Connected to server successfully");
             }
 
             @Override
@@ -66,34 +64,28 @@ public class GameClient {
                     return;
                 }
 
-                System.out.println("GameClient: Received game message: " + object.getClass().getSimpleName());
 
                 if (object instanceof Network.StartGame sg) {
-                    System.out.println("GameClient: StartGame received for player " + sg.playerNumber);
                     playerNumber = sg.playerNumber;
                 }
 
                 if (object instanceof Network.InitialHand hand) {
-                    System.out.println("GameClient: InitialHand received with " + hand.pieces.size() + " pieces");
                     Platform.runLater(() -> {
                         listener.onStartGame(playerNumber, hand.pieces);
                     });
                 }
 
                 if (object instanceof Network.YourTurn) {
-                    System.out.println("GameClient: YourTurn received - It's MY turn now!");
                     Platform.runLater(listener::onYourTurn);
                 }
 
                 if (object instanceof Network.OpponentPlayed op) {
-                    System.out.println("GameClient: OpponentPlayed received - Opponent played piece " + op.pieceId);
                     Platform.runLater(() ->
                             listener.onOpponentPlayed(op.pieceId, op.leftValue, op.rightValue, op.placedOnLeft, op.flipped)
                     );
                 }
 
                 if (object instanceof Network.MoveValidated mv) {
-                    System.out.println("GameClient: MoveValidated for piece " + mv.pieceId);
                     Platform.runLater(() -> {
                         if (listener instanceof ExtendedGameListener) {
                             ((ExtendedGameListener) listener).onMoveValidated(
@@ -104,7 +96,6 @@ public class GameClient {
                 }
 
                 if (object instanceof Network.MoveInvalid mi) {
-                    System.out.println("GameClient: MoveInvalid - Reason: " + mi.reason);
                     Platform.runLater(() -> {
                         if (listener instanceof ExtendedGameListener) {
                             ((ExtendedGameListener) listener).onMoveInvalid(mi.reason);
@@ -112,7 +103,6 @@ public class GameClient {
                     });
                 }
                 if (object instanceof Network.PieceDrawn pd) {
-                    System.out.println("GameClient: Received PieceDrawn response");
                     Platform.runLater(() -> {
                         if (listener instanceof ExtendedGameListener) {
                             ((ExtendedGameListener) listener).onPieceDrawn(pd.piece, pd.successful);
@@ -121,17 +111,13 @@ public class GameClient {
                 }
 
                 if (object instanceof Network.GameOver) {
-                    System.out.println("GameClient: GameOver received");
                 }
             }
         });
 
         try {
-            System.out.println("Client: Attempting to connect to " + host + ":" + Network.TCP_PORT);
 
             client.connect(10000, host, Network.TCP_PORT, Network.UDP_PORT);
-
-            System.out.println("✓ Connected to server at " + host);
 
             client.sendTCP(new com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive());
 
@@ -140,10 +126,10 @@ public class GameClient {
             throw new IOException("Failed to connect to " + host + ":" + Network.TCP_PORT, e);
         }
     }
+
     public void drawPiece() {
         Network.DrawPiece draw = new Network.DrawPiece();
         client.sendTCP(draw);
-        System.out.println("Sent draw request to server");
     }
     public void playCard(int pieceId, int leftValue, int rightValue, boolean placedOnLeft, boolean flipped) {
         Network.PlayPiece play = new Network.PlayPiece();
@@ -153,14 +139,11 @@ public class GameClient {
         play.placedOnLeft = placedOnLeft;
         play.flipped = flipped;
         client.sendTCP(play);
-        System.out.println("Sent piece to server: ID=" + pieceId +
-                " [" + leftValue + "-" + rightValue + "]" +
-                " placedOnLeft=" + placedOnLeft + " flipped=" + flipped);
+
     }
 
     public void disconnect() {
         if (client != null) {
-            System.out.println("Client: Manually disconnecting");
             client.stop();
         }
     }

@@ -24,7 +24,6 @@ javafx {
 
 dependencies {
     implementation("com.esotericsoftware:kryonet:2.22.0-RC1")
-
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
