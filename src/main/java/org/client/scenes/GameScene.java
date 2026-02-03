@@ -136,7 +136,7 @@ public class GameScene {
 
     private void setupDrawButton() {
         try {
-            Image drawImage = new Image(getClass().getResource("/Pieces/?.png").toExternalForm());
+            Image drawImage = new Image(getClass().getResource("/Pieces/Draw.png").toExternalForm());
             ImageView drawImageView = new ImageView(drawImage);
             drawImageView.setPreserveRatio(true);
             drawImageView.setFitWidth(40);
