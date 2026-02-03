@@ -3,6 +3,7 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.beryx.jlink") version "3.0.1"
 }
 
 group = "org.example"
@@ -44,5 +45,33 @@ tasks.shadowJar {
     archiveVersion.set("1.0.0")
     manifest {
         attributes(mapOf("Main-Class" to "org.EntryPoint"))
+    }
+}
+val osName = System.getProperty("os.name").lowercase()
+val installerType = when {
+    osName.contains("mac") -> "dmg"
+    osName.contains("win") -> "exe"
+    osName.contains("linux") -> "deb"
+    else -> "app-image"
+}
+
+jlink {
+    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+
+    addExtraDependencies("javafx")
+
+    launcher {
+        name = "DominoGame"
+    }
+
+    jpackage {
+        imageName = "DominoGame"
+        installerName = "DominoGame"
+        appVersion = "1.0.0"
+        installerType = installerType
+
+        jvmArgs = listOf(
+            "--enable-native-access=javafx.graphics"
+        )
     }
 }
