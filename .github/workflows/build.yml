@@ -25,6 +25,11 @@ jobs:
       - name: Build Shadow JAR
         run: ./gradlew clean shadowJar --no-daemon
 
+      - name: Download JavaFX jmods
+        run: |
+          curl -L -o javafx-jmods.zip https://download2.gluonhq.com/openjfx/21.0.2/openjfx-21.0.2_osx-aarch64_bin-jmods.zip
+          unzip javafx-jmods.zip
+
       - name: Create DMG with jpackage
         run: |
           jpackage \
@@ -34,6 +39,8 @@ jobs:
             --main-class org.EntryPoint \
             --type dmg \
             --app-version 1.0.0 \
+            --module-path javafx-jmods-21.0.2 \
+            --add-modules javafx.controls,javafx.graphics,javafx.media \
             --java-options '--enable-native-access=javafx.graphics'
 
       - name: Upload macOS DMG
@@ -57,6 +64,12 @@ jobs:
         run: ./gradlew clean shadowJar --no-daemon
         shell: bash
 
+      - name: Download JavaFX jmods
+        run: |
+          curl -L -o javafx-jmods.zip https://download2.gluonhq.com/openjfx/21.0.2/openjfx-21.0.2_windows-x64_bin-jmods.zip
+          Expand-Archive -Path javafx-jmods.zip -DestinationPath .
+        shell: powershell
+
       - name: Create EXE with jpackage
         run: |
           jpackage `
@@ -66,7 +79,10 @@ jobs:
             --main-class org.EntryPoint `
             --type exe `
             --app-version 1.0.0 `
-            --java-options '--enable-native-access=javafx.graphics'
+            --module-path "javafx-jmods-21.0.2" `
+            --add-modules javafx.controls,javafx.graphics,javafx.media `
+            --java-options '--enable-native-access=javafx.graphics' `
+            --win-console
         shell: powershell
 
       - name: Upload Windows EXE
@@ -92,6 +108,11 @@ jobs:
       - name: Build Shadow JAR
         run: ./gradlew clean shadowJar --no-daemon
 
+      - name: Download JavaFX jmods
+        run: |
+          curl -L -o javafx-jmods.zip https://download2.gluonhq.com/openjfx/21.0.2/openjfx-21.0.2_linux-x64_bin-jmods.zip
+          unzip javafx-jmods.zip
+
       - name: Create DEB with jpackage
         run: |
           jpackage \
@@ -101,6 +122,8 @@ jobs:
             --main-class org.EntryPoint \
             --type deb \
             --app-version 1.0.0 \
+            --module-path javafx-jmods-21.0.2 \
+            --add-modules javafx.controls,javafx.graphics,javafx.media \
             --java-options '--enable-native-access=javafx.graphics'
 
       - name: Upload Linux DEB
