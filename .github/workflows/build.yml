@@ -19,22 +19,28 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Verify Java
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
-
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build DMG
-        run: ./gradlew clean jpackage --no-daemon --stacktrace
+      - name: Build Shadow JAR
+        run: ./gradlew clean shadowJar --no-daemon
+
+      - name: Create DMG with jpackage
+        run: |
+          jpackage \
+            --input build/libs \
+            --name DominoGame \
+            --main-jar DominoGame-1.0.0.jar \
+            --main-class org.EntryPoint \
+            --type dmg \
+            --app-version 1.0.0 \
+            --java-options '--enable-native-access=javafx.graphics'
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
           name: DominoGame-macOS
-          path: build/jpackage/*.dmg
+          path: "*.dmg"
 
   build-windows:
     runs-on: windows-latest
@@ -47,20 +53,27 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Verify Java
-        run: |
-          java -version
-          echo "JAVA_HOME=$env:JAVA_HOME"
-
-      - name: Build EXE
-        run: ./gradlew clean jpackage --no-daemon --stacktrace
+      - name: Build Shadow JAR
+        run: ./gradlew clean shadowJar --no-daemon
         shell: bash
+
+      - name: Create EXE with jpackage
+        run: |
+          jpackage `
+            --input build/libs `
+            --name DominoGame `
+            --main-jar DominoGame-1.0.0.jar `
+            --main-class org.EntryPoint `
+            --type exe `
+            --app-version 1.0.0 `
+            --java-options '--enable-native-access=javafx.graphics'
+        shell: powershell
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
         with:
           name: DominoGame-Windows
-          path: build/jpackage/*.exe
+          path: "*.exe"
 
   build-linux:
     runs-on: ubuntu-latest
@@ -73,19 +86,25 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Verify Java
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
-
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build DEB
-        run: ./gradlew clean jpackage --no-daemon --stacktrace
+      - name: Build Shadow JAR
+        run: ./gradlew clean shadowJar --no-daemon
+
+      - name: Create DEB with jpackage
+        run: |
+          jpackage \
+            --input build/libs \
+            --name DominoGame \
+            --main-jar DominoGame-1.0.0.jar \
+            --main-class org.EntryPoint \
+            --type deb \
+            --app-version 1.0.0 \
+            --java-options '--enable-native-access=javafx.graphics'
 
       - name: Upload Linux DEB
         uses: actions/upload-artifact@v4
         with:
           name: DominoGame-Linux
-          path: build/jpackage/*.deb
+          path: "*.deb"
