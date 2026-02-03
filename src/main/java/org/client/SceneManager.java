@@ -5,6 +5,9 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.media.*;
 
+import java.io.IOException;
+import java.net.URL;
+
 
 public class SceneManager extends Application {
 
@@ -15,9 +18,23 @@ public class SceneManager extends Application {
     private static HostScene hostMenu;
     private static GameScene gameMenu;
     private static JoinScene joinMenu;
-
+    private MediaPlayer backGroundTrack;
     @Override
     public void start(Stage stage) {
+
+        URL url = getClass().getResource("/Sfx/Track.mp3");
+
+        if (url == null) {
+            System.err.println("Background music not found");
+            return;
+        }
+
+        Media media = new Media(url.toExternalForm());
+        backGroundTrack = new MediaPlayer(media);
+        backGroundTrack.setCycleCount(MediaPlayer.INDEFINITE);
+        backGroundTrack.setVolume(0.1);
+        backGroundTrack.play();
+
         primaryStage = stage;
         mainMenu = new MainMenu();
         mainMenu.initializeVar();

@@ -17,6 +17,7 @@ public class GameServer {
 
     private final List<Network.Piece> board = new ArrayList<>();
     private final List<Network.Piece> drawPile = new ArrayList<>();
+    private final List<Network.Piece>[] playerHands = new ArrayList[2];
     private int leftEndValue = -1;
     private int rightEndValue = -1;
     private boolean firstMoveMade = false;
@@ -68,6 +69,9 @@ public class GameServer {
 
         server.getKryo().setRegistrationRequired(false);
         drawPile.addAll(allPieces);
+        playerHands[0] = new ArrayList<>();
+        playerHands[1] = new ArrayList<>();
+
         server.addListener(new Listener() {
             @Override
             public void connected(Connection c) {
@@ -104,8 +108,14 @@ public class GameServer {
             @Override
             public void disconnected(Connection c) {
                 if (connectedPlayers > 0) {
-                    broadcast(new Network.GameOver());
-                    resetGame();
+                    int other = (currentTurn + 1) % 2;
+                    // broadcast(new Network.GameOver());
+                   // resetGame();
+                    System.out.println("Server closing");
+                    players[other].sendTCP(new Network.GameOver());
+                    server.stop();
+                    server.close();
+
                 }
             }
 
@@ -138,6 +148,7 @@ public class GameServer {
             Network.Piece drawnPiece = drawPile.remove(0);
             response.piece = drawnPiece;
             response.successful = true;
+            playerHands[playerId - 1].add(drawnPiece);
 
         }
 
@@ -149,6 +160,7 @@ public class GameServer {
         Collections.shuffle(drawPile);
 
         for (int i = 0; i < 2; i++) {
+            playerHands[i].clear();
             Network.StartGame sg = new Network.StartGame();
             sg.playerNumber = i + 1;
             sg.hand = new ArrayList<>();
@@ -161,6 +173,7 @@ public class GameServer {
                 if (!drawPile.isEmpty()) {
                     Network.Piece piece = drawPile.remove(0);
                     hand.pieces.add(piece);
+                    playerHands[i].add(piece);
                 }
             }
 
@@ -187,7 +200,7 @@ public class GameServer {
             return;
         }
 
-
+        removePieceFromPlayerHand(senderId, move.pieceId);
         Network.MoveValidated validated = new Network.MoveValidated();
         validated.pieceId = move.pieceId;
         validated.leftValue = move.leftValue;
@@ -198,7 +211,7 @@ public class GameServer {
 
         applyMoveToBoard(move);
         firstMoveMade = true;
-
+        checkForwin(senderId);
         int other = (currentTurn + 1) % 2;
         Network.OpponentPlayed msg = new Network.OpponentPlayed();
         msg.pieceId = move.pieceId;
@@ -214,7 +227,19 @@ public class GameServer {
         players[currentTurn].sendTCP(new Network.YourTurn());
 
     }
+    private void removePieceFromPlayerHand(int playerId, int pieceId) {
+        int playerIndex = playerId - 1;
 
+        for (int i = 0; i < playerHands[playerIndex].size(); i++) {
+            if (playerHands[playerIndex].get(i).id == pieceId) {
+                Network.Piece removed = playerHands[playerIndex].remove(i);
+                System.out.println("Removed piece " + pieceId + " from Player " + playerId + "'s hand. Hand size: " + playerHands[playerIndex].size());
+                return;
+            }
+        }
+
+        System.out.println("WARNING: Could not find piece " + pieceId + " in Player " + playerId + "'s hand!");
+    }
 
     private String validateMove(Network.PlayPiece move) {
 
@@ -328,6 +353,18 @@ public class GameServer {
         return "/Pieces/00.png";
     }
 
+    private void checkForwin(int senderId){
+        if (playerHands[senderId - 1].isEmpty()) {
+            System.out.println("🎉 Player " + senderId + " has WON the game! No pieces left.");
+
+            Network.GameWon gameWon = new Network.GameWon();
+            gameWon.winnerPlayerNumber = senderId;
+            gameWon.reason = "Player " + senderId + " has no pieces left!";
+            broadcast(gameWon);
+            return;
+        }
+
+    }
 
     private void broadcast(Object msg) {
         for (int i = 0; i < connectedPlayers; i++) {

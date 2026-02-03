@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import java.util.random.RandomGenerator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
@@ -15,8 +16,10 @@ import org.client.GameClient;
 import org.shared.Network;
 import javafx.scene.control.Alert;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class GameScene {
 
@@ -24,8 +27,11 @@ public class GameScene {
     private ImageView boardView;
     String videoPath;
     Media backGroundVid;
+    URL placementSfxUrl;
     MediaPlayer mediaPlayer;
+    MediaPlayer placementSfx;
     MediaView mediaView;
+    private StackPane root = new StackPane();
 
     private final HBox handBox = new HBox(12);
     private final List<Network.Piece> hand = new ArrayList<>();
@@ -38,6 +44,7 @@ public class GameScene {
     private boolean myTurn = false;
     private GameClient client;
 
+    private int numOfPieces = 7;
     private Network.Piece lastAttemptedPiece = null;
 
     public GameScene() {
@@ -48,12 +55,28 @@ public class GameScene {
         this.client = client;
     }
 
+    private void PlaySound(){
+        int randomNumber = (int)(Math.random() * 8) + 1;
+        String path = String.format("/Sfx/placement%d.mp3" , randomNumber);
+
+        placementSfxUrl = getClass().getResource(path);
+        if (placementSfxUrl == null) {
+            System.err.println("Background music not found");
+        }
+        Media media = new Media(placementSfxUrl.toExternalForm());
+        placementSfx = new MediaPlayer(media);
+        placementSfx.setVolume(1);
+        placementSfx.play();
+
+
+    }
     private void loadAssets() {
         try {
-
             frameView = new ImageView(
                     getClass().getResource("/Holder.png").toExternalForm()
             );
+            frameView.setPreserveRatio(false);
+            frameView.setFitWidth(numOfPieces * 57 );
 
             boardView = new ImageView(
                     getClass().getResource("/board.png").toExternalForm()
@@ -75,7 +98,6 @@ public class GameScene {
     }
 
     public Scene createScene() {
-        StackPane root = new StackPane();
 
         setupDrawButton();
 
@@ -207,6 +229,7 @@ public class GameScene {
 
             hand.add(piece);
             renderHand();
+           // root.getChildren().add(frameView);
 
 
             showAlert("Piece Drawn", "You drew [" + piece.leftValue + "-" + piece.rightValue + "]");
@@ -246,9 +269,10 @@ public class GameScene {
     private void renderHand() {
 
         handBox.getChildren().clear();
+        numOfPieces = 0;
 
         for (Network.Piece piece : hand) {
-
+            numOfPieces++;
             try {
                 String imagePath = piece.imagePath;
                 if (!imagePath.startsWith("/")) {
@@ -389,6 +413,7 @@ public class GameScene {
 
     private void addPlayedPiece(Network.Piece piece, boolean playedByMe, boolean placedOnLeft, boolean flipped) {
 
+        PlaySound();
         try {
             String imagePath = piece.imagePath;
             if (!imagePath.startsWith("/")) {
@@ -459,6 +484,14 @@ public class GameScene {
         handBox.setOpacity(0.6);
         drawButton.setDisable(true);
         drawButton.setOpacity(0.6);
+    }
+    public void disableGameBoard() {
+        handBox.setDisable(true);
+        handBox.setOpacity(0.5);
+        drawButton.setDisable(true);
+        drawButton.setOpacity(0.5);
+
+        showAlert("Game Over", "The game has ended!");
     }
 
     private void enableHand() {

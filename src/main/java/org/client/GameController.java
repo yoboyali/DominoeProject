@@ -1,6 +1,7 @@
 package org.client;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import org.client.scenes.GameScene;
 import org.server.GameServer;
@@ -15,6 +16,7 @@ public class GameController {
     private GameClient client;
     private GameScene gameScene;
     private boolean serverStarted = false;
+    private int playernumber = 0;
 
     public GameController() {}
 
@@ -50,6 +52,7 @@ public class GameController {
                 client = new GameClient(ip, new GameClient.ExtendedGameListener() {
                     @Override
                     public void onStartGame(int playerNumber, List<Network.Piece> hand) {
+                        playernumber = playerNumber;
                         Platform.runLater(() -> {
                             gameScene.setHand(hand);
                             gameScene.setClient(client);
@@ -93,6 +96,25 @@ public class GameController {
                     public void onPieceDrawn(Network.Piece piece, boolean successful) {
                         Platform.runLater(() -> {
                             gameScene.onPieceDrawn(piece, successful);
+                        });
+                    }
+                    @Override
+                    public void onGameWon(int winnerPlayerNumber , String reason){
+                        Platform.runLater(() -> {
+                            String message;
+                            if (winnerPlayerNumber == playernumber) {
+                                message = "🎉 You WIN! " + reason;
+                            } else {
+                                message = "Player " + winnerPlayerNumber + " wins! " + reason;
+                            }
+
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Game Over");
+                            alert.setHeaderText(null);
+                            alert.setContentText(message);
+                            alert.showAndWait();
+
+                            gameScene.disableGameBoard();
                         });
                     }
 

@@ -98,7 +98,7 @@ public class MainMenu{
                         "-fx-padding: 0;"
         );
         profileBtn.setOnAction(e -> {
-            //SceneManager.setProfileScene();
+            SceneManager.setProfileScene();
 
         });
         Group gb = new Group(hostBtn , joinBtn , creditBtn , profileBtn);

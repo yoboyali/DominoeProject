@@ -5,6 +5,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import org.shared.Network;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ public class GameClient {
         void onMoveValidated(int pieceId, int leftValue, int rightValue, boolean placedOnLeft, boolean flipped);
         void onMoveInvalid(String reason);
         void onPieceDrawn(Network.Piece piece, boolean successful);
+        void onGameWon(int winnerPlayerNumber, String reason);
     }
 
     private final Client client;
@@ -110,7 +112,13 @@ public class GameClient {
                     });
                 }
 
-                if (object instanceof Network.GameOver) {
+                if (object instanceof Network.GameWon gw) {
+                    System.out.println("GameClient: GameWon - Player " + gw.winnerPlayerNumber + " won: " + gw.reason);
+                    Platform.runLater(() -> {
+                        if (listener instanceof ExtendedGameListener) {
+                            ((ExtendedGameListener) listener).onGameWon(gw.winnerPlayerNumber, gw.reason);
+                        }
+                    });
                 }
             }
         });
@@ -145,6 +153,8 @@ public class GameClient {
     public void disconnect() {
         if (client != null) {
             client.stop();
+            SceneManager.setMainScene();
+
         }
     }
 }
