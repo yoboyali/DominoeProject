@@ -1,9 +1,11 @@
 package org.client.scenes;
 
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.geometry.Pos;
@@ -36,18 +38,33 @@ public class HostScene {
     }
     public Scene createScene() {
 
+        Label titleLabel = new Label("Host Game");
+        titleLabel.setFont(Font.font("Arial", 24));
+
         controller = new GameController();
-        Button hostBtn = new Button("HOST GAME");
+        Button hostBtn = new Button("HOST");
+        hostBtn.setPrefWidth(150);
 
         hostBtn.setOnAction(e -> {
             hostBtn.setDisable(true);
             controller.hostGame(primaryStage);
         });
+        Button backButton = new Button("Back to Menu");
+        backButton.setPrefWidth(150);
+        backButton.setOnAction(e -> SceneManager.setMainScene());
 
 
-        VBox root = new VBox(hostBtn);
+;
+
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(50));
         root.setAlignment(Pos.CENTER);
-        root.setSpacing(20);
+        root.getChildren().addAll(
+                titleLabel,
+                hostBtn,
+                backButton
+        );
+
 
         return new Scene(root, 400, 300);
     }
