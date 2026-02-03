@@ -19,11 +19,16 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Grant execute permission for gradlew
+      - name: Verify Java
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
+
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build DMG
-        run: ./gradlew clean jpackage
+        run: ./gradlew clean jpackage --no-daemon --stacktrace
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
@@ -42,8 +47,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Verify Java
+        run: |
+          java -version
+          echo "JAVA_HOME=$env:JAVA_HOME"
+
       - name: Build EXE
-        run: ./gradlew clean jpackage
+        run: ./gradlew clean jpackage --no-daemon --stacktrace
+        shell: bash
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
@@ -62,11 +73,16 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Grant execute permission for gradlew
+      - name: Verify Java
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
+
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build DEB
-        run: ./gradlew clean jpackage
+        run: ./gradlew clean jpackage --no-daemon --stacktrace
 
       - name: Upload Linux DEB
         uses: actions/upload-artifact@v4
