@@ -93,6 +93,10 @@ public class MainMenu{
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"
         );
+        creditBtn.setOnAction(e -> {
+            SceneManager.setCreditsScene();
+
+        });
         profileBtn.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-padding: 0;"

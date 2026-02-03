@@ -18,6 +18,7 @@ public class SceneManager extends Application {
     private static HostScene hostMenu;
     private static GameScene gameMenu;
     private static JoinScene joinMenu;
+    private static CreditsScene creditsMenu;
     private MediaPlayer backGroundTrack;
     @Override
     public void start(Stage stage) {
@@ -47,8 +48,10 @@ public class SceneManager extends Application {
         primaryStage.show();
 
         joinMenu = new JoinScene(primaryStage);
-
         hostMenu = new HostScene(primaryStage);
+
+        creditsMenu = new CreditsScene();
+        creditsMenu.loadAssets();
 
     }
 
@@ -79,6 +82,12 @@ public class SceneManager extends Application {
        primaryStage.setScene(joinMenu.createScene());
        primaryStage.sizeToScene();
        primaryStage.centerOnScreen();
+   }
+   public static void setCreditsScene(){
+        primaryStage.setScene(creditsMenu.createScene());
+        primaryStage.sizeToScene();
+        primaryStage.centerOnScreen();
+
    }
     public static void main(String[] args) {
         launch(args);
