@@ -21,6 +21,7 @@ public class MainMenu{
     URL joinHost;
     URL creditsHost;
     URL profileHost;
+    URL videourl;
     Font fontHost;
     InputStream fontStream;
     String videoPath;
@@ -41,8 +42,9 @@ public class MainMenu{
         profileHost = getClass().getResource("/Profile.png");
         fontStream = getClass().getResourceAsStream("/Moldie.otf");
 
-        videoPath = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
-        backGroundVid = new Media(videoPath);
+        //videoPath = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
+        videourl = getClass().getResource("/Background.mp4");
+        backGroundVid = new Media(videourl.toExternalForm());
         mediaPlayer = new MediaPlayer(backGroundVid);
         mediaView = new MediaView(mediaPlayer);
         mediaPlayer.setOnEndOfMedia(() -> mediaPlayer.seek(Duration.ZERO));

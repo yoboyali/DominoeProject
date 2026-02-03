@@ -7,6 +7,9 @@ import org.client.scenes.GameScene;
 import org.server.GameServer;
 import org.shared.Network;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 import java.util.List;
 
 public class GameController {
@@ -35,8 +38,11 @@ public class GameController {
             GameServer.startServer();
             try { Thread.sleep(2000); } catch (InterruptedException e) {}
         }
-
-        connect("localhost");
+        String serverIP = getNetworkIP();
+        System.out.println("Hosting on IP: " + serverIP);
+        connect(serverIP);
+        ShowAlert(serverIP);
+        //connect("localhost");
     }
 
     public void joinGame(Stage stage, String ip) {
@@ -131,7 +137,39 @@ public class GameController {
             }
         }, "GameClient-Connector").start();
     }
+    private String getNetworkIP() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
 
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (!addr.getHostAddress().contains(":")) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "localhost"; // Fallback
+    }
+    void ShowAlert(String Serverip){
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Connection Successful");
+        dialog.setHeaderText("The game has been hosted");
+        dialog.setContentText("ip: " + Serverip);
+
+        javafx.scene.control.ButtonType cancelButton = new javafx.scene.control.ButtonType("ok",
+                javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        dialog.getButtonTypes().setAll(cancelButton);
+        dialog.showAndWait();
+
+    }
     public void disconnect() {
         if (client != null) {
             client.disconnect();

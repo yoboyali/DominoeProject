@@ -2,6 +2,7 @@ plugins {
     java
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "org.example"
@@ -19,7 +20,7 @@ java {
 
 javafx {
     version = "21"
-    modules("javafx.controls", "javafx.graphics" , "javafx.media")
+    modules("javafx.controls", "javafx.graphics", "javafx.media")
 }
 
 dependencies {
@@ -34,9 +35,14 @@ tasks.test {
 }
 
 application {
-    //mainClass.set("org.example.Main")
-    mainClass.set("org.client.SceneManager")
-    //mainClass.set("org.client.GameController")
+    mainClass.set("org.EntryPoint")
+}
 
-
+tasks.shadowJar {
+    archiveBaseName.set("DominoGame")
+    archiveClassifier.set("")
+    archiveVersion.set("1.0.0")
+    manifest {
+        attributes(mapOf("Main-Class" to "org.EntryPoint"))
+    }
 }

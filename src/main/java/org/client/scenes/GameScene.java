@@ -28,6 +28,7 @@ public class GameScene {
     String videoPath;
     Media backGroundVid;
     URL placementSfxUrl;
+    URL videoUrl;
     MediaPlayer mediaPlayer;
     MediaPlayer placementSfx;
     MediaView mediaView;
@@ -81,9 +82,9 @@ public class GameScene {
             boardView = new ImageView(
                     getClass().getResource("/board.png").toExternalForm()
             );
-            videoPath = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
-
-            backGroundVid = new Media(videoPath);
+           // videoPath = new File("/Users/alihamdy/IdeaProjects/DominoeProject/src/main/resources/Background.mp4").toURI().toString();
+            videoUrl = getClass().getResource("/Background.mp4");
+            backGroundVid = new Media(videoUrl.toExternalForm());
 
             mediaPlayer = new MediaPlayer(backGroundVid);
             mediaView = new MediaView(mediaPlayer);

@@ -126,7 +126,6 @@ public class GameServer {
         });
 
         server.bind(Network.TCP_PORT, Network.UDP_PORT);
-
         server.start();
 
     }
